@@ -1,0 +1,9 @@
+:root {
+  --bg-main: #fdf8f6;
+}
+
+body {
+  background-color: var(--bg-main);
+  margin: 0;
+  font-family: system-ui, -apple-system, sans-serif;
+}
