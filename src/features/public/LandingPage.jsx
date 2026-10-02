@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 export default function LandingPage({ onNavigateToDashboard }) {
   const [showDemoModal, setShowDemoModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false); // Payment Modal State
   const [authMode, setAuthMode] = useState('login'); // 'login' or 'signup'
   
   // Empty form initial state - Pre-fill disabled
@@ -23,6 +24,16 @@ export default function LandingPage({ onNavigateToDashboard }) {
   const handleAuthSubmit = (e) => {
     e.preventDefault();
     setShowAuthModal(false);
+    if (onNavigateToDashboard) {
+      onNavigateToDashboard();
+    }
+  };
+
+  // Handle Payment Submit Demo
+  const handlePaymentSubmit = (e) => {
+    e.preventDefault();
+    alert('Payment Successful! Welcome to HifzMate Pro.');
+    setShowPaymentModal(false);
     if (onNavigateToDashboard) {
       onNavigateToDashboard();
     }
@@ -215,7 +226,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
                   </ul>
                 </div>
                 <button
-                  onClick={() => openAuthModal('signup')}
+                  onClick={() => setShowPaymentModal(true)}
                   className="w-full py-2.5 bg-white text-[#0d472a] hover:bg-emerald-50 rounded-xl text-xs font-semibold transition shadow-sm"
                 >
                   Go Pro
@@ -353,7 +364,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
       {/* Demo Video Modal */}
       {showDemoModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl relative">
             <div className="flex justify-between items-center border-b pb-3">
               <h3 className="font-bold text-gray-800 text-sm">HifzMate Pro Live Demo</h3>
               <button 
@@ -363,21 +374,77 @@ export default function LandingPage({ onNavigateToDashboard }) {
                 ✕
               </button>
             </div>
-            <div className="p-8 bg-emerald-50 rounded-xl text-center space-y-3">
-              <div className="text-4xl">🎬</div>
-              <p className="text-xs text-emerald-900 font-medium">
-                Click below to enter the live interactive app dashboard.
-              </p>
-              <button
-                onClick={() => {
-                  setShowDemoModal(false);
-                  openAuthModal('login');
-                }}
-                className="px-5 py-2.5 bg-[#0d472a] text-white font-semibold text-xs rounded-xl shadow hover:bg-emerald-900 transition"
-              >
-                Enter App Dashboard
-              </button>
+            <div className="rounded-xl overflow-hidden shadow-inner bg-black">
+              <video 
+                src="/demo.mp4" 
+                controls 
+                autoPlay 
+                muted 
+                loop 
+                className="w-full h-auto max-h-[300px] object-cover"
+              />
             </div>
+            <button
+              onClick={() => {
+                setShowDemoModal(false);
+                openAuthModal('login');
+              }}
+              className="w-full px-5 py-2.5 bg-[#0d472a] text-white font-semibold text-xs rounded-xl shadow hover:bg-emerald-900 transition"
+            >
+              Enter App Dashboard
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Gateway Modal */}
+      {showPaymentModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl relative">
+            <button 
+              onClick={() => setShowPaymentModal(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 font-bold text-sm"
+            >
+              ✕
+            </button>
+
+            <div className="text-center space-y-1">
+              <h3 className="font-bold text-xl text-gray-900">Upgrade to HifzMate Pro</h3>
+              <p className="text-xs text-gray-500">Subscribe for $5/month to unlock all features</p>
+            </div>
+
+            <form onSubmit={handlePaymentSubmit} className="space-y-4 pt-2">
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Select Payment Method</label>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <label className="flex items-center gap-2 border p-2.5 rounded-lg cursor-pointer hover:bg-gray-50">
+                    <input type="radio" name="payment" defaultChecked />
+                    <span>💳 Credit Card</span>
+                  </label>
+                  <label className="flex items-center gap-2 border p-2.5 rounded-lg cursor-pointer hover:bg-gray-50">
+                    <input type="radio" name="payment" />
+                    <span>📱 EasyPaisa / JazzCash</span>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Account / Card Number</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="03001234567 or Card Number"
+                  className="w-full px-3.5 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0d472a]"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-2.5 bg-[#0d472a] hover:bg-emerald-900 text-white font-semibold text-xs rounded-xl shadow transition"
+              >
+                Pay $5 & Activate Pro
+              </button>
+            </form>
           </div>
         </div>
       )}
