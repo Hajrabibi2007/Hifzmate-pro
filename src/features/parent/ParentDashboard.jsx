@@ -9,6 +9,9 @@ export default function ParentDashboard({ onLogout }) {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Mobile Menu Toggle State
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   // Dynamic Stats
   const [stats, setStats] = useState({
     sabaqCompleted: '0 / 0',
@@ -150,21 +153,51 @@ export default function ParentDashboard({ onLogout }) {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50 text-gray-800 font-sans">
-      {/* Sidebar Navigation */}
-      <aside className="w-60 bg-[#0d472a] text-white flex flex-col justify-between p-4 shadow-xl shrink-0">
+    <div className="flex flex-col md:flex-row min-h-screen bg-gray-50 text-gray-800 font-sans relative">
+
+      {/* Mobile Top Header with Hamburger Button */}
+      <div className="md:hidden bg-[#0d472a] text-white p-4 flex justify-between items-center sticky top-0 z-30 shadow-md">
+        <div className="flex items-center gap-2">
+          <span className="text-xl">📖</span>
+          <div>
+            <h2 className="font-bold text-sm leading-tight">HifzMate Pro</h2>
+            <p className="text-[9px] text-emerald-200">Parent Portal</p>
+          </div>
+        </div>
+        <button 
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="p-2 bg-[#135d38] rounded-lg text-white text-lg focus:outline-none"
+        >
+          {isMobileMenuOpen ? '✕' : '☰'}
+        </button>
+      </div>
+
+      {/* Responsive Sidebar Navigation */}
+      <aside className={`
+        fixed md:static inset-y-0 left-0 z-40 w-60 bg-[#0d472a] text-white flex flex-col justify-between p-4 shadow-xl shrink-0 transition-transform duration-300 ease-in-out
+        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      `}>
         <div className="space-y-6">
-          <div className="flex items-center gap-2.5 px-2">
-            <span className="text-2xl">📖</span>
-            <div>
-              <h2 className="font-bold text-base leading-tight">HifzMate Pro</h2>
-              <p className="text-[10px] text-emerald-200">Parent Portal</p>
+          <div className="flex items-center justify-between px-2">
+            <div className="flex items-center gap-2.5">
+              <span className="text-2xl">📖</span>
+              <div>
+                <h2 className="font-bold text-base leading-tight">HifzMate Pro</h2>
+                <p className="text-[10px] text-emerald-200">Parent Portal</p>
+              </div>
             </div>
+            {/* Close button inside sidebar for mobile */}
+            <button 
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="md:hidden text-white text-lg p-1"
+            >
+              ✕
+            </button>
           </div>
 
           <nav className="space-y-1 text-xs font-medium">
             <button
-              onClick={() => setActiveTab('dashboard')}
+              onClick={() => { setActiveTab('dashboard'); setIsMobileMenuOpen(false); }}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition ${
                 activeTab === 'dashboard' ? 'bg-white/20 text-white font-bold' : 'text-emerald-100/70 hover:bg-white/10'
               }`}
@@ -172,7 +205,7 @@ export default function ParentDashboard({ onLogout }) {
               📊 Dashboard
             </button>
             <button
-              onClick={() => setActiveTab('reports')}
+              onClick={() => { setActiveTab('reports'); setIsMobileMenuOpen(false); }}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition ${
                 activeTab === 'reports' ? 'bg-white/20 text-white font-bold' : 'text-emerald-100/70 hover:bg-white/10'
               }`}
@@ -182,7 +215,7 @@ export default function ParentDashboard({ onLogout }) {
           </nav>
         </div>
 
-        {/* Logged in User Profile Info & Logout */}
+        {/* Logged-in User Profile Info & Logout */}
         <div className="border-t border-emerald-800/60 pt-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-emerald-700 flex items-center justify-center text-xs font-bold text-white">
@@ -202,12 +235,19 @@ export default function ParentDashboard({ onLogout }) {
         </div>
       </aside>
 
+      {/* Overlay to close mobile menu when clicking outside */}
+      {isMobileMenuOpen && (
+        <div 
+          onClick={() => setIsMobileMenuOpen(false)} 
+          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+        />
+      )}
       {/* Main Workspace View */}
-      <main className="flex-1 p-6 space-y-6 overflow-y-auto">
+      <main className="flex-1 p-4 md:p-6 space-y-6 overflow-y-auto w-full">
         {/* Header Section */}
-        <div className="flex justify-between items-center bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm">
           <div>
-            <h1 className="text-2xl font-bold text-gray-800">
+            <h1 className="text-xl md:text-2xl font-bold text-gray-800">
               {activeTab === 'dashboard' ? 'Parent Dashboard 👨‍‍👩‍👧' : 'Child Progress Report 📑'}
             </h1>
             <p className="text-xs text-gray-500 mt-0.5">
@@ -217,7 +257,7 @@ export default function ParentDashboard({ onLogout }) {
           </div>
           <button
             onClick={() => setShowLogoutModal(true)}
-            className="px-4 py-2 bg-red-50 text-red-600 rounded-xl text-xs font-semibold hover:bg-red-100 transition"
+            className="self-start sm:self-auto px-4 py-2 bg-red-50 text-red-600 rounded-xl text-xs font-semibold hover:bg-red-100 transition"
           >
             Logout
           </button>
@@ -227,35 +267,35 @@ export default function ParentDashboard({ onLogout }) {
         {activeTab === 'dashboard' && (
           <div className="space-y-6">
             {/* Live Counters */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
               <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-1">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">SABAQ COMPLETED</p>
-                <p className="text-2xl font-bold text-gray-800">{stats.sabaqCompleted}</p>
+                <p className="text-xl md:text-2xl font-bold text-gray-800">{stats.sabaqCompleted}</p>
               </div>
 
               <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-1">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">REVISION SESSIONS</p>
-                <p className="text-2xl font-bold text-gray-800">{stats.revisionSessions}</p>
+                <p className="text-xl md:text-2xl font-bold text-gray-800">{stats.revisionSessions}</p>
               </div>
 
               <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-1">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">EXAMS PASSED</p>
-                <p className="text-2xl font-bold text-emerald-600">{stats.examsPassed}</p>
+                <p className="text-xl md:text-2xl font-bold text-emerald-600">{stats.examsPassed}</p>
               </div>
 
               <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-1">
                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">WEAK AREAS</p>
-                <p className="text-2xl font-bold text-amber-600">{stats.weakAreas}</p>
+                <p className="text-xl md:text-2xl font-bold text-amber-600">{stats.weakAreas}</p>
               </div>
             </div>
 
             {/* Live Sabaq Assigned Feed */}
             {sabaqAssignments.length > 0 && (
-              <div className="bg-white p-5 rounded-2xl border border-emerald-100 shadow-sm space-y-3">
+              <div className="bg-white p-4 md:p-5 rounded-2xl border border-emerald-100 shadow-sm space-y-3">
                 <h3 className="text-xs font-bold text-[#0d472a] flex items-center gap-2">
                   <span>📖</span> Recent Sabaq & Revision Assigned by Teacher
                 </h3>
-                <div className="grid md:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   {sabaqAssignments.slice(0, 3).map((item) => (
                     <div key={item.id} className="p-3 bg-emerald-50/50 rounded-xl border border-emerald-100 text-xs space-y-1">
                       <div className="flex justify-between items-center">
@@ -271,9 +311,9 @@ export default function ParentDashboard({ onLogout }) {
             )}
 
             {/* Realtime Feedback & Progress Grid */}
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Teacher Feedback Section */}
-              <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm space-y-4">
+              <div className="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm space-y-4">
                 <h3 className="text-xs font-bold text-gray-700">Teacher Direct Feedback 💬</h3>
                 {activities.length === 0 ? (
                   <p className="text-xs text-gray-400 italic py-6 text-center">No teacher feedback recorded yet.</p>
@@ -296,7 +336,7 @@ export default function ParentDashboard({ onLogout }) {
               </div>
 
               {/* Progress Ring */}
-              <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between space-y-4">
+              <div className="bg-white p-4 md:p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between space-y-4">
                 <h3 className="text-xs font-bold text-gray-700">Overall Progress Ring</h3>
 
                 <div className="flex flex-col items-center justify-center py-4 space-y-2">
@@ -339,7 +379,7 @@ export default function ParentDashboard({ onLogout }) {
 
         {/* TAB 2: PROGRESS REPORTS VIEW */}
         {activeTab === 'reports' && (
-          <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
+          <div className="bg-white p-4 md:p-6 rounded-2xl border border-gray-100 shadow-sm space-y-6">
             <div className="border-b pb-4">
               <h2 className="text-lg font-bold text-gray-800">Detailed Progress Report</h2>
               <p className="text-xs text-gray-500">Comprehensive breakdown of student performance and learning metrics.</p>
@@ -358,7 +398,7 @@ export default function ParentDashboard({ onLogout }) {
               </div>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-4 text-xs pt-2">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs pt-2">
               <div className="p-4 bg-emerald-50/50 rounded-xl border border-emerald-100 space-y-1">
                 <p className="text-gray-500 font-medium">Sabaq Target Progress</p>
                 <p className="text-xl font-bold text-emerald-800">{stats.sabaqCompleted}</p>
@@ -418,7 +458,7 @@ export default function ParentDashboard({ onLogout }) {
       {showLogoutModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl max-w-sm w-full p-6 space-y-4 shadow-2xl text-center border border-gray-100">
-            <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center-justify-center mx-auto text-xl">
+            <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto text-xl">
               🚪
             </div>
             <div className="space-y-1">

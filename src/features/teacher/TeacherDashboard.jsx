@@ -6,6 +6,9 @@ export default function TeacherDashboard() {
   const [activeTab, setActiveTab] = useState('Overview');
   const [selectedStudent, setSelectedStudent] = useState('');
 
+  // Mobile Navigation Drawer Toggle
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   // Surahs List State
   const [surahList, setSurahList] = useState([]);
 
@@ -213,19 +216,50 @@ export default function TeacherDashboard() {
     setExamData({ title: '', classId: 'Class 1-A', surahStart: '', surahEnd: '', examType: 'Oral Recitation', totalMarks: 100 });
     alert('Exam created successfully!');
   };
+
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <aside className="w-64 bg-[#0d472a] text-white p-5 flex flex-col justify-between">
+    <div className="flex flex-col md:flex-row min-h-screen bg-gray-50 text-gray-800 relative">
+      {/* Mobile Sticky Top Header with Menu Button */}
+      <div className="md:hidden bg-[#0d472a] text-white p-4 flex justify-between items-center sticky top-0 z-30 shadow-md">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-[#186a41] flex items-center justify-center font-bold text-white text-xs">
+            {teacherGender === 'female' ? '🧕' : '👳'}
+          </div>
+          <div>
+            <h2 className="font-bold text-sm leading-tight">{teacherName}</h2>
+            <p className="text-[9px] text-emerald-200">Teacher Portal</p>
+          </div>
+        </div>
+        <button
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          className="p-2 bg-[#135d38] rounded-lg text-white text-base focus:outline-none"
+        >
+          {isMobileMenuOpen ? '✕' : '☰'}
+        </button>
+      </div>
+
+      {/* Responsive Sidebar Navigation */}
+      <aside className={`
+        fixed md:static inset-y-0 left-0 z-40 w-64 bg-[#0d472a] text-white p-5 flex flex-col justify-between shadow-xl shrink-0 transition-transform duration-300 ease-in-out
+        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      `}>
         <div>
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 rounded-full bg-[#186a41] flex items-center justify-center font-bold text-white text-sm">
-              {teacherGender === 'female' ? '🧕' : '👳'}
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-[#186a41] flex items-center justify-center font-bold text-white text-sm">
+                {teacherGender === 'female' ? '🧕' : '👳'}
+              </div>
+              <div>
+                <p className="font-bold text-sm">{teacherName}</p>
+                <p className="text-[10px] text-emerald-200">Hifz Teacher / Qari</p>
+              </div>
             </div>
-            <div>
-              <p className="font-bold text-sm">{teacherName}</p>
-              <p className="text-[10px] text-emerald-200">Hifz Teacher / Qari</p>
-            </div>
+            <button
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="md:hidden text-white text-lg p-1"
+            >
+              ✕
+            </button>
           </div>
 
           <nav className="space-y-1.5">
@@ -239,7 +273,10 @@ export default function TeacherDashboard() {
             ].map((tab) => (
               <button
                 key={tab.name}
-                onClick={() => setActiveTab(tab.name)}
+                onClick={() => {
+                  setActiveTab(tab.name);
+                  setIsMobileMenuOpen(false);
+                }}
                 className={`w-full text-left px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-2.5 transition ${
                   activeTab === tab.name ? 'bg-[#186a41] text-white shadow' : 'text-emerald-100 hover:bg-[#135d38]'
                 }`}
@@ -252,15 +289,25 @@ export default function TeacherDashboard() {
         </div>
       </aside>
 
-      {/* Main Content */}
-      <main className="flex-1 p-8 space-y-6">
-        <header className="flex justify-between items-center">
+      {/* Mobile Dark Overlay */}
+      {isMobileMenuOpen && (
+        <div
+          onClick={() => setIsMobileMenuOpen(false)}
+          className="fixed inset-0 bg-black/50 z-30 md:hidden"
+        />
+      )}
+      {/* Main Content Workspace */}
+      <main className="flex-1 p-4 md:p-8 space-y-6 w-full overflow-y-auto">
+        <header className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 bg-white p-4 rounded-2xl border shadow-sm">
           <div>
             <h1 className="text-xl font-bold text-gray-800">{activeTab}</h1>
             <p className="text-xs text-gray-500">HifzMate Management Dashboard</p>
           </div>
           <div className="flex gap-2">
-            <button onClick={() => setTeacherGender(teacherGender === 'male' ? 'female' : 'male')} className="px-3 py-1.5 text-xs bg-white border rounded-xl shadow-sm">
+            <button
+              onClick={() => setTeacherGender(teacherGender === 'male' ? 'female' : 'male')}
+              className="px-3 py-1.5 text-xs bg-gray-50 border rounded-xl shadow-sm hover:bg-gray-100 font-semibold"
+            >
               Gender: {teacherGender === 'male' ? 'Male 👳' : 'Female 🧕'}
             </button>
           </div>
@@ -269,7 +316,7 @@ export default function TeacherDashboard() {
         {/* OVERVIEW TAB */}
         {activeTab === 'Overview' && (
           <div className="space-y-6">
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="bg-white p-5 rounded-2xl border shadow-sm">
                 <p className="text-xs text-gray-400 font-semibold">Total Active Students</p>
                 <p className="text-2xl font-bold text-gray-800 mt-1">{students.filter(s => s.status === 'Active').length}</p>
@@ -290,7 +337,7 @@ export default function TeacherDashboard() {
         {activeTab === 'Student Directory' && (
           <div className="space-y-6">
             {/* Add Student Form */}
-            <div className="bg-white p-6 rounded-2xl border shadow-sm max-w-xl">
+            <div className="bg-white p-5 md:p-6 rounded-2xl border shadow-sm max-w-xl">
               <h3 className="font-bold text-xs text-gray-800 mb-3">Add New Student</h3>
               <form onSubmit={handleAddStudent} className="space-y-3 text-xs">
                 <div>
@@ -331,11 +378,11 @@ export default function TeacherDashboard() {
             </div>
 
             {/* Active Students List */}
-            <div className="bg-white p-6 rounded-2xl border shadow-sm">
+            <div className="bg-white p-5 md:p-6 rounded-2xl border shadow-sm">
               <h3 className="font-bold text-xs text-gray-800 mb-3">Active Students</h3>
               <div className="divide-y text-xs">
                 {students.filter(s => s.status === 'Active').map((s) => (
-                  <div key={s.id} className="py-3 flex justify-between items-center">
+                  <div key={s.id} className="py-3 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                     <div>
                       <p className="font-bold text-gray-800">{s.name}</p>
                       <p className="text-[11px] text-gray-500 mt-0.5">
@@ -359,20 +406,20 @@ export default function TeacherDashboard() {
             </div>
 
             {/* Graduated Students List */}
-            <div className="bg-white p-6 rounded-2xl border shadow-sm border-purple-100 bg-purple-50/20">
+            <div className="bg-white p-5 md:p-6 rounded-2xl border shadow-sm border-purple-100 bg-purple-50/20">
               <h3 className="font-bold text-xs text-purple-900 mb-3 flex items-center gap-1.5">
                 <span>🎓</span> Graduated Hufaz
               </h3>
               <div className="divide-y text-xs">
                 {students.filter(s => s.status === 'Graduated').map((s) => (
-                  <div key={s.id} className="py-3 flex justify-between items-center">
+                  <div key={s.id} className="py-3 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                     <div>
                       <p className="font-bold text-purple-950 text-sm">{s.name}</p>
                       <p className="text-[11px] text-gray-600 mt-0.5">
                         Admission: <span className="font-semibold">{s.startDate}</span> | Completion: <span className="font-semibold">{s.completionDate}</span>
                       </p>
                     </div>
-                    <div className="text-right">
+                    <div className="sm:text-right">
                       <span className="inline-block px-3 py-1 bg-purple-100 text-purple-800 font-bold text-[11px] rounded-xl border border-purple-200">
                         ⏱️ Total Time Taken: {s.duration}
                       </span>
@@ -386,9 +433,10 @@ export default function TeacherDashboard() {
             </div>
           </div>
         )}
+
         {/* PARENT FEEDBACK TAB */}
         {activeTab === 'Parent Feedback' && (
-          <div className="bg-white p-6 rounded-2xl border shadow-sm max-w-2xl space-y-4">
+          <div className="bg-white p-5 md:p-6 rounded-2xl border shadow-sm max-w-2xl space-y-4">
             <h2 className="font-bold text-gray-800 text-sm">Send Direct Feedback to Parent Dashboard 💬</h2>
             <form onSubmit={handleSendFeedback} className="space-y-3 text-xs">
               <div>
@@ -452,7 +500,7 @@ export default function TeacherDashboard() {
 
         {/* ASSIGN SABAQ / PROGRESS TAB */}
         {activeTab === 'Assign Sabaq' && (
-          <div className="bg-white p-6 rounded-2xl border shadow-sm max-w-2xl space-y-4">
+          <div className="bg-white p-5 md:p-6 rounded-2xl border shadow-sm max-w-2xl space-y-4">
             <h2 className="font-bold text-gray-800 text-sm">Assign Sabaq & Update Parent Progress 📖</h2>
             <form onSubmit={handleAssignSabaq} className="space-y-3 text-xs">
               <div>
@@ -526,7 +574,7 @@ export default function TeacherDashboard() {
 
         {/* ATTENDANCE TAB */}
         {activeTab === 'Attendance' && (
-          <div className="bg-white p-6 rounded-2xl border space-y-4">
+          <div className="bg-white p-5 md:p-6 rounded-2xl border space-y-4">
             <h2 className="font-bold text-gray-800 text-sm">Daily Attendance Marking</h2>
             <div className="divide-y">
               {students.filter(s => s.status === 'Active').map((s) => (
@@ -557,7 +605,7 @@ export default function TeacherDashboard() {
 
         {/* CREATE EXAM TAB */}
         {activeTab === 'Create Exam' && (
-          <div className="bg-white p-6 rounded-2xl border shadow-sm max-w-xl space-y-4">
+          <div className="bg-white p-5 md:p-6 rounded-2xl border shadow-sm max-w-xl space-y-4">
             <h3 className="font-bold text-xs text-gray-800">Exam Creation Wizard (Step {examWizardStep} of 4)</h3>
 
             {examWizardStep === 1 && (
