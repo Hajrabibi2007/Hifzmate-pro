@@ -6,54 +6,38 @@ export default function TeacherDashboard() {
   const [activeTab, setActiveTab] = useState('Overview');
   const [selectedStudent, setSelectedStudent] = useState('');
 
-  // 1. Earnings & Wallet State
-  const [wallet, setWallet] = useState(() => {
-    const saved = localStorage.getItem('hifz_wallet');
-    return saved ? JSON.parse(saved) : { totalEarned: 45000, currentBalance: 12500, pendingPayout: 0 };
-  });
-
-  const [payouts, setPayouts] = useState(() => {
-    const saved = localStorage.getItem('hifz_payouts');
-    return saved ? JSON.parse(saved) : [
-      { id: 'PO-9921', date: '2026-03-01', amount: 15000, status: 'Completed', method: 'JazzCash' },
-      { id: 'PO-8812', date: '2026-02-15', amount: 17500, status: 'Completed', method: 'EasyPaisa' },
-    ];
-  });
-
-  const [payoutForm, setPayoutForm] = useState({ amount: '', method: 'JazzCash', accountNo: '' });
-
-  // 2. Surahs List State
+  // Surahs List State
   const [surahList, setSurahList] = useState([]);
 
-  // 3. Real Students State
+  // Student Directory State with Admission Date and Duration
   const [students, setStudents] = useState(() => {
     const saved = localStorage.getItem('hifz_students');
     return saved ? JSON.parse(saved) : [
-      { id: '101', name: 'Ali Ahmed', phone: '03001234567', currentJuz: 'Juz 3', status: 'Active', startDate: '2026-01-10', attendance: 'Present' },
-      { id: '102', name: 'Hamza Khan', phone: '03007654321', currentJuz: 'Juz 5', status: 'Active', startDate: '2026-02-15', attendance: 'Present' },
-      { id: '103', name: 'Usman Ghani', phone: '03129876543', currentJuz: 'Juz 12', status: 'Active', startDate: '2025-11-01', attendance: 'Present' },
+      { id: '101', name: 'Ali Ahmed', phone: '03001234567', currentJuz: 'Juz 3', status: 'Active', startDate: '2025-01-15', completionDate: null, duration: null, attendance: 'Present' },
+      { id: '102', name: 'Hamza Khan', phone: '03007654321', currentJuz: 'Juz 5', status: 'Active', startDate: '2026-02-01', completionDate: null, duration: null, attendance: 'Present' },
+      { id: '103', name: 'Usman Ghani', phone: '03129876543', currentJuz: 'Juz 30', status: 'Graduated', startDate: '2023-01-10', completionDate: '2025-06-15', duration: '2 Years, 5 Months, 5 Days', attendance: 'Present' },
     ];
   });
 
-  // 4. Assignments / Progress State
+  // Assignments / Progress State
   const [assignments, setAssignments] = useState(() => {
     const saved = localStorage.getItem('hifz_assignments');
     return saved ? JSON.parse(saved) : [];
   });
 
-  // 5. Shared Parent Feedbacks State (Auto Syncs with Parent Dashboard)
+  // Parent Feedbacks State
   const [feedbacks, setFeedbacks] = useState(() => {
     const saved = localStorage.getItem('hifz_parent_feedbacks');
     return saved ? JSON.parse(saved) : [];
   });
 
-  // 6. Attendance Logs
+  // Attendance Logs
   const [attendanceLogs, setAttendanceLogs] = useState(() => {
     const saved = localStorage.getItem('hifz_attendance_logs');
     return saved ? JSON.parse(saved) : [];
   });
 
-  // 7. Exam Creation Wizard State
+  // Exam Creation Wizard State
   const [examWizardStep, setExamWizardStep] = useState(1);
   const [examData, setExamData] = useState({ title: '', classId: 'Class 1-A', surahStart: '', surahEnd: '', examType: 'Oral Recitation', totalMarks: 100 });
   const [createdExams, setCreatedExams] = useState(() => {
@@ -64,11 +48,14 @@ export default function TeacherDashboard() {
   // Forms
   const [sabaqForm, setSabaqForm] = useState({ surah: '', fromAyah: '1', toAyah: '10', type: 'Sabaq' });
   const [feedbackForm, setFeedbackForm] = useState({ studentId: '101', message: '', type: 'Good Progress', rating: 5 });
-  const [newStudentForm, setNewStudentForm] = useState({ name: '', phone: '', currentJuz: 'Juz 1' });
+  const [newStudentForm, setNewStudentForm] = useState({
+    name: '',
+    phone: '',
+    currentJuz: 'Juz 1',
+    startDate: new Date().toISOString().split('T')[0]
+  });
 
   // Persistence Effects
-  useEffect(() => { localStorage.setItem('hifz_wallet', JSON.stringify(wallet)); }, [wallet]);
-  useEffect(() => { localStorage.setItem('hifz_payouts', JSON.stringify(payouts)); }, [payouts]);
   useEffect(() => { localStorage.setItem('hifz_students', JSON.stringify(students)); }, [students]);
   useEffect(() => { localStorage.setItem('hifz_assignments', JSON.stringify(assignments)); }, [assignments]);
   useEffect(() => { localStorage.setItem('hifz_parent_feedbacks', JSON.stringify(feedbacks)); }, [feedbacks]);
@@ -83,10 +70,38 @@ export default function TeacherDashboard() {
       .catch((err) => console.error('Error fetching Surahs:', err));
   }, []);
 
-  // Attendance Toggle with Confirmation
+  // Calculate Duration in Years, Months, and Days
+  const calculateDuration = (startDateStr, endDateStr) => {
+    const start = new Date(startDateStr);
+    const end = new Date(endDateStr);
+
+    let years = end.getFullYear() - start.getFullYear();
+    let months = end.getMonth() - start.getMonth();
+    let days = end.getDate() - start.getDate();
+
+    if (days < 0) {
+      months -= 1;
+      const prevMonth = new Date(end.getFullYear(), end.getMonth(), 0);
+      days += prevMonth.getDate();
+    }
+
+    if (months < 0) {
+      years -= 1;
+      months += 12;
+    }
+
+    const parts = [];
+    if (years > 0) parts.push(`${years} ${years === 1 ? 'Year' : 'Years'}`);
+    if (months > 0) parts.push(`${months} ${months === 1 ? 'Month' : 'Months'}`);
+    if (days > 0 || parts.length === 0) parts.push(`${days} ${days === 1 ? 'Day' : 'Days'}`);
+
+    return parts.join(', ');
+  };
+
+  // Attendance Toggle
   const handleAttendanceChange = (id, studentName, status) => {
     if (status === 'Absent') {
-      const confirmAbsent = window.confirm(`Kya aap ${studentName} ko ABSENT mark karna chahte hain?`);
+      const confirmAbsent = window.confirm(`Are you sure you want to mark ${studentName} as ABSENT?`);
       if (!confirmAbsent) return;
     }
 
@@ -107,25 +122,45 @@ export default function TeacherDashboard() {
       phone: newStudentForm.phone || '03000000000',
       currentJuz: newStudentForm.currentJuz,
       status: 'Active',
-      startDate: new Date().toISOString().split('T')[0],
+      startDate: newStudentForm.startDate,
+      completionDate: null,
+      duration: null,
       attendance: 'Present'
     };
     setStudents([...students, newStudent]);
-    setNewStudentForm({ name: '', phone: '', currentJuz: 'Juz 1' });
-    alert('Naya Student kamyabi se add ho gaya!');
+    setNewStudentForm({
+      name: '',
+      phone: '',
+      currentJuz: 'Juz 1',
+      startDate: new Date().toISOString().split('T')[0]
+    });
+    alert('New student added successfully!');
   };
 
-  // Move to Graduate / Alumni
+  // Mark Completed / Graduate Student
   const handleGraduateStudent = (id) => {
-    if (window.confirm('Kya yeh student Hifz poora kar chuka hai? Iss ko Graduates list mein shift kar dein?')) {
-      setStudents(students.map(s => s.id === id ? { ...s, status: 'Graduated' } : s));
+    const student = students.find(s => s.id === id);
+    if (!student) return;
+
+    if (window.confirm(`Has ${student.name} completed Hifz? Move to Graduates list?`)) {
+      const today = new Date().toISOString().split('T')[0];
+      const durationFormatted = calculateDuration(student.startDate, today);
+
+      setStudents(students.map(s => s.id === id ? {
+        ...s,
+        status: 'Graduated',
+        completionDate: today,
+        duration: durationFormatted
+      } : s));
+
+      alert(`Congratulations! ${student.name} completed Hifz in ${durationFormatted}.`);
     }
   };
 
-  // Assign Sabaq / Live Progress Update to Parent Dashboard
+  // Assign Sabaq
   const handleAssignSabaq = (e) => {
     e.preventDefault();
-    if (!selectedStudent || !sabaqForm.surah) { alert('Student aur Surah select karein.'); return; }
+    if (!selectedStudent || !sabaqForm.surah) { alert('Please select a student and a surah.'); return; }
 
     const targetStudent = students.find(s => s.name === selectedStudent);
     const newAssignment = {
@@ -139,15 +174,15 @@ export default function TeacherDashboard() {
     };
 
     setAssignments([newAssignment, ...assignments]);
-    alert(`✅ Progress update ho gayi aur Parent Dashboard mein chali gayi!`);
+    alert('Progress updated successfully!');
     setSelectedStudent('');
   };
 
-  // Direct Parent Dashboard Feedback
+  // Send Direct Feedback
   const handleSendFeedback = (e) => {
     e.preventDefault();
     if (!feedbackForm.studentId || !feedbackForm.message) {
-      alert('Student aur Message zaroori hai.');
+      alert('Student and message are required.');
       return;
     }
 
@@ -166,43 +201,17 @@ export default function TeacherDashboard() {
     setFeedbacks([newFb, ...feedbacks]);
     setFeedbackForm({ studentId: feedbackForm.studentId, message: '', type: 'Good Progress', rating: 5 });
 
-    alert(`✅ Feedback aur Star Rating direct Parent Dashboard mein bhej di gayi hai!`);
-  };
-
-  // Payout Request
-  const handleRequestPayout = (e) => {
-    e.preventDefault();
-    const amountNum = Number(payoutForm.amount);
-    if (!amountNum || amountNum <= 0) { alert('Sahi amount darj karein.'); return; }
-    if (amountNum > wallet.currentBalance) { alert('Aap ke balance se zyada amount hai.'); return; }
-
-    const newReq = {
-      id: `PO-${Math.floor(1000 + Math.random() * 9000)}`,
-      date: new Date().toISOString().split('T')[0],
-      amount: amountNum,
-      status: 'Pending',
-      method: payoutForm.method
-    };
-
-    setWallet({
-      ...wallet,
-      currentBalance: wallet.currentBalance - amountNum,
-      pendingPayout: wallet.pendingPayout + amountNum
-    });
-
-    setPayouts([newReq, ...payouts]);
-    setPayoutForm({ amount: '', method: 'JazzCash', accountNo: '' });
-    alert('Payout Request bhej di gayi hai!');
+    alert('Feedback sent to Parent Dashboard!');
   };
 
   // Create Exam Save
   const handleSaveExam = () => {
-    if (!examData.title) { alert('Exam ka title likhein.'); return; }
+    if (!examData.title) { alert('Please enter an exam title.'); return; }
     const newExam = { id: Date.now(), ...examData, date: new Date().toLocaleDateString() };
     setCreatedExams([newExam, ...createdExams]);
     setExamWizardStep(1);
     setExamData({ title: '', classId: 'Class 1-A', surahStart: '', surahEnd: '', examType: 'Oral Recitation', totalMarks: 100 });
-    alert('Exam kamyabi se create ho gaya!');
+    alert('Exam created successfully!');
   };
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -227,7 +236,6 @@ export default function TeacherDashboard() {
               { name: 'Parent Feedback', icon: '💬' },
               { name: 'Create Exam', icon: '📝' },
               { name: 'Student Directory', icon: '👨‍🎓' },
-              { name: 'Wallet & Earnings', icon: '💰' },
             ].map((tab) => (
               <button
                 key={tab.name}
@@ -261,7 +269,7 @@ export default function TeacherDashboard() {
         {/* OVERVIEW TAB */}
         {activeTab === 'Overview' && (
           <div className="space-y-6">
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div className="bg-white p-5 rounded-2xl border shadow-sm">
                 <p className="text-xs text-gray-400 font-semibold">Total Active Students</p>
                 <p className="text-2xl font-bold text-gray-800 mt-1">{students.filter(s => s.status === 'Active').length}</p>
@@ -271,17 +279,113 @@ export default function TeacherDashboard() {
                 <p className="text-2xl font-bold text-emerald-600 mt-1">{students.filter(s => s.attendance === 'Present').length}</p>
               </div>
               <div className="bg-white p-5 rounded-2xl border shadow-sm">
-                <p className="text-xs text-gray-400 font-semibold">Wallet Balance</p>
-                <p className="text-2xl font-bold text-[#0d472a] mt-1">Rs. {wallet.currentBalance.toLocaleString()}</p>
-              </div>
-              <div className="bg-white p-5 rounded-2xl border shadow-sm">
-                <p className="text-xs text-gray-400 font-semibold">Graduated Students</p>
+                <p className="text-xs text-gray-400 font-semibold">Graduated / Hufaz</p>
                 <p className="text-2xl font-bold text-purple-600 mt-1">{students.filter(s => s.status === 'Graduated').length}</p>
               </div>
             </div>
           </div>
         )}
 
+        {/* STUDENT DIRECTORY TAB */}
+        {activeTab === 'Student Directory' && (
+          <div className="space-y-6">
+            {/* Add Student Form */}
+            <div className="bg-white p-6 rounded-2xl border shadow-sm max-w-xl">
+              <h3 className="font-bold text-xs text-gray-800 mb-3">Add New Student</h3>
+              <form onSubmit={handleAddStudent} className="space-y-3 text-xs">
+                <div>
+                  <label className="block font-semibold mb-1 text-gray-600">Student Name</label>
+                  <input
+                    type="text"
+                    placeholder="Full Name"
+                    value={newStudentForm.name}
+                    onChange={(e) => setNewStudentForm({ ...newStudentForm, name: e.target.value })}
+                    className="w-full p-2.5 border rounded-xl outline-none"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold mb-1 text-gray-600">Parent Phone Number</label>
+                  <input
+                    type="text"
+                    placeholder="03001234567"
+                    value={newStudentForm.phone}
+                    onChange={(e) => setNewStudentForm({ ...newStudentForm, phone: e.target.value })}
+                    className="w-full p-2.5 border rounded-xl outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block font-semibold mb-1 text-gray-600">Admission Date</label>
+                  <input
+                    type="date"
+                    value={newStudentForm.startDate}
+                    onChange={(e) => setNewStudentForm({ ...newStudentForm, startDate: e.target.value })}
+                    className="w-full p-2.5 border rounded-xl outline-none"
+                    required
+                  />
+                </div>
+                <button type="submit" className="w-full py-2.5 bg-[#0d472a] text-white font-semibold rounded-xl hover:bg-[#135d38]">
+                  Save Student
+                </button>
+              </form>
+            </div>
+
+            {/* Active Students List */}
+            <div className="bg-white p-6 rounded-2xl border shadow-sm">
+              <h3 className="font-bold text-xs text-gray-800 mb-3">Active Students</h3>
+              <div className="divide-y text-xs">
+                {students.filter(s => s.status === 'Active').map((s) => (
+                  <div key={s.id} className="py-3 flex justify-between items-center">
+                    <div>
+                      <p className="font-bold text-gray-800">{s.name}</p>
+                      <p className="text-[11px] text-gray-500 mt-0.5">
+                        {s.currentJuz} • Phone: {s.phone}
+                      </p>
+                      <p className="text-[10px] text-emerald-700 font-medium">
+                        Admission Date: {s.startDate}
+                      </p>
+                    </div>
+                    <div>
+                      <button
+                        onClick={() => handleGraduateStudent(s.id)}
+                        className="px-3 py-1.5 bg-purple-600 text-white font-bold text-[11px] rounded-xl hover:bg-purple-700 shadow-sm"
+                      >
+                        Mark Completed 🎓
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Graduated Students List */}
+            <div className="bg-white p-6 rounded-2xl border shadow-sm border-purple-100 bg-purple-50/20">
+              <h3 className="font-bold text-xs text-purple-900 mb-3 flex items-center gap-1.5">
+                <span>🎓</span> Graduated Hufaz
+              </h3>
+              <div className="divide-y text-xs">
+                {students.filter(s => s.status === 'Graduated').map((s) => (
+                  <div key={s.id} className="py-3 flex justify-between items-center">
+                    <div>
+                      <p className="font-bold text-purple-950 text-sm">{s.name}</p>
+                      <p className="text-[11px] text-gray-600 mt-0.5">
+                        Admission: <span className="font-semibold">{s.startDate}</span> | Completion: <span className="font-semibold">{s.completionDate}</span>
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <span className="inline-block px-3 py-1 bg-purple-100 text-purple-800 font-bold text-[11px] rounded-xl border border-purple-200">
+                        ⏱️ Total Time Taken: {s.duration}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+                {students.filter(s => s.status === 'Graduated').length === 0 && (
+                  <p className="text-xs text-gray-400 py-2">No records found.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
         {/* PARENT FEEDBACK TAB */}
         {activeTab === 'Parent Feedback' && (
           <div className="bg-white p-6 rounded-2xl border shadow-sm max-w-2xl space-y-4">
@@ -425,7 +529,7 @@ export default function TeacherDashboard() {
           <div className="bg-white p-6 rounded-2xl border space-y-4">
             <h2 className="font-bold text-gray-800 text-sm">Daily Attendance Marking</h2>
             <div className="divide-y">
-              {students.map((s) => (
+              {students.filter(s => s.status === 'Active').map((s) => (
                 <div key={s.id} className="py-3 flex justify-between items-center">
                   <div>
                     <span className="font-semibold text-xs block">{s.name}</span>
@@ -451,109 +555,11 @@ export default function TeacherDashboard() {
           </div>
         )}
 
-        {/* WALLET & EARNINGS TAB */}
-        {activeTab === 'Wallet & Earnings' && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-3 gap-4">
-              <div className="bg-white p-5 rounded-2xl border shadow-sm">
-                <p className="text-xs text-gray-400 font-semibold">Total Earned</p>
-                <p className="text-xl font-bold text-gray-800 mt-1">Rs. {wallet.totalEarned.toLocaleString()}</p>
-              </div>
-              <div className="bg-white p-5 rounded-2xl border shadow-sm">
-                <p className="text-xs text-gray-400 font-semibold">Current Balance</p>
-                <p className="text-xl font-bold text-emerald-600 mt-1">Rs. {wallet.currentBalance.toLocaleString()}</p>
-              </div>
-              <div className="bg-white p-5 rounded-2xl border shadow-sm">
-                <p className="text-xs text-gray-400 font-semibold">Pending Withdrawal</p>
-                <p className="text-xl font-bold text-amber-600 mt-1">Rs. {wallet.pendingPayout.toLocaleString()}</p>
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-2xl border shadow-sm max-w-xl">
-              <h3 className="font-bold text-xs text-gray-800 mb-3">Request Payout / Withdrawal</h3>
-              <form onSubmit={handleRequestPayout} className="space-y-3 text-xs">
-                <input
-                  type="number"
-                  placeholder="Amount (PKR)"
-                  value={payoutForm.amount}
-                  onChange={(e) => setPayoutForm({ ...payoutForm, amount: e.target.value })}
-                  className="w-full p-2.5 border rounded-xl outline-none"
-                  required
-                />
-                <select
-                  value={payoutForm.method}
-                  onChange={(e) => setPayoutForm({ ...payoutForm, method: e.target.value })}
-                  className="w-full p-2.5 border rounded-xl outline-none"
-                >
-                  <option value="JazzCash">JazzCash</option>
-                  <option value="EasyPaisa">EasyPaisa</option>
-                  <option value="Bank Transfer">Bank Transfer</option>
-                </select>
-                <button type="submit" className="w-full py-2 bg-[#0d472a] text-white font-semibold rounded-xl">
-                  Submit Withdrawal Request
-                </button>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* STUDENT DIRECTORY TAB */}
-        {activeTab === 'Student Directory' && (
-          <div className="space-y-6">
-            <div className="bg-white p-6 rounded-2xl border shadow-sm max-w-xl">
-              <h3 className="font-bold text-xs text-gray-800 mb-3">Add New Student</h3>
-              <form onSubmit={handleAddStudent} className="space-y-3 text-xs">
-                <input
-                  type="text"
-                  placeholder="Student Full Name"
-                  value={newStudentForm.name}
-                  onChange={(e) => setNewStudentForm({ ...newStudentForm, name: e.target.value })}
-                  className="w-full p-2.5 border rounded-xl outline-none"
-                  required
-                />
-                <input
-                  type="text"
-                  placeholder="Parent Contact Phone"
-                  value={newStudentForm.phone}
-                  onChange={(e) => setNewStudentForm({ ...newStudentForm, phone: e.target.value })}
-                  className="w-full p-2.5 border rounded-xl outline-none"
-                />
-                <button type="submit" className="w-full py-2 bg-[#0d472a] text-white font-semibold rounded-xl">
-                  Save Student
-                </button>
-              </form>
-            </div>
-
-            <div className="bg-white p-6 rounded-2xl border shadow-sm">
-              <h3 className="font-bold text-xs text-gray-800 mb-3">Student List</h3>
-              <div className="divide-y text-xs">
-                {students.map((s) => (
-                  <div key={s.id} className="py-2.5 flex justify-between items-center">
-                    <div>
-                      <p className="font-bold text-gray-800">{s.name}</p>
-                      <p className="text-[10px] text-gray-400">{s.currentJuz} • {s.phone}</p>
-                    </div>
-                    <div>
-                      {s.status === 'Active' ? (
-                        <button onClick={() => handleGraduateStudent(s.id)} className="px-2.5 py-1 bg-purple-50 text-purple-700 font-bold text-[10px] rounded-lg">
-                          Mark Graduate 🎓
-                        </button>
-                      ) : (
-                        <span className="px-2.5 py-1 bg-purple-100 text-purple-800 font-bold text-[10px] rounded-lg">Graduate 🎓</span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* CREATE EXAM TAB */}
         {activeTab === 'Create Exam' && (
           <div className="bg-white p-6 rounded-2xl border shadow-sm max-w-xl space-y-4">
             <h3 className="font-bold text-xs text-gray-800">Exam Creation Wizard (Step {examWizardStep} of 4)</h3>
-            
+
             {examWizardStep === 1 && (
               <div className="space-y-3 text-xs">
                 <input
