@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import {supabase} from '../../supbaseClient'; // Import Supabase client
+import {supabase} from '../../supabaseClient'; 
 
 export default function TeacherDashboard() {
   const [teacherName, setTeacherName] = useState('Ustad');

@@ -3,40 +3,51 @@ import React, { useState } from 'react';
 export default function LandingPage({ onNavigateToDashboard }) {
   const [showDemoModal, setShowDemoModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState(false); // Payment Modal State
-  const [authMode, setAuthMode] = useState('login'); // 'login' or 'signup'
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [authMode, setAuthMode] = useState('login');
   
-  // Empty form initial state - Pre-fill disabled
+  // Loading state
+  const [isLoading, setIsLoading] = useState(false);
+  
   const [formData, setFormData] = useState({ 
     email: '', 
     password: '', 
     name: '' 
   });
 
-  // Handle Login / Sign Up Modal Open
   const openAuthModal = (mode = 'login') => {
     setAuthMode(mode);
     setFormData({ email: '', password: '', name: '' });
     setShowAuthModal(true);
   };
 
-  // Handle Form Submission
+  // Handle Form Submission with Loading State
   const handleAuthSubmit = (e) => {
     e.preventDefault();
-    setShowAuthModal(false);
-    if (onNavigateToDashboard) {
-      onNavigateToDashboard();
-    }
+    setIsLoading(true);
+    
+    setTimeout(() => {
+      setIsLoading(false);
+      setShowAuthModal(false);
+      if (onNavigateToDashboard) {
+        onNavigateToDashboard();
+      }
+    }, 1500);
   };
 
-  // Handle Payment Submit Demo
+  // Handle Payment Submit Demo with Loading State
   const handlePaymentSubmit = (e) => {
     e.preventDefault();
-    alert('Payment Successful! Welcome to HifzMate Pro.');
-    setShowPaymentModal(false);
-    if (onNavigateToDashboard) {
-      onNavigateToDashboard();
-    }
+    setIsLoading(true);
+
+    setTimeout(() => {
+      setIsLoading(false);
+      alert('Payment Successful! Welcome to HifzMate Pro.');
+      setShowPaymentModal(false);
+      if (onNavigateToDashboard) {
+        onNavigateToDashboard();
+      }
+    }, 1500);
   };
 
   return (
@@ -80,65 +91,60 @@ export default function LandingPage({ onNavigateToDashboard }) {
           </div>
         </nav>
 
-        {/* Hero Section */}
-        <section id="home" className="pt-12 pb-16 px-6 max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-12 gap-8 items-center">
-            {/* Left Content */}
-            <div className="md:col-span-7 space-y-6 text-left">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-[#0d472a] border border-emerald-100 text-xs font-semibold">
+        {/* Hero Section with Full Background Image */}
+        <section 
+          id="home" 
+          className="relative py-24 px-6 bg-cover bg-center bg-no-repeat min-h-[85vh] flex items-center"
+          style={{ backgroundImage: `url('/img.jpg')` }}
+        >
+          {/* Overlay to ensure text readability */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-transparent"></div>
+
+          <div className="relative max-w-7xl mx-auto w-full z-10">
+            <div className="max-w-xl space-y-6 text-left">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold backdrop-blur-sm">
                 ✨ Next-Gen Quran Memorization Platform
               </div>
 
-              <h1 className="text-3xl md:text-5xl font-extrabold text-gray-900 leading-tight tracking-tight">
+              <h1 className="text-3xl md:text-5xl font-extrabold text-white leading-tight tracking-tight">
                 Your Hifz Journey, <br />
-                <span className="text-gray-900">Smarter & Easier</span>
+                <span className="text-emerald-400">Smarter & Easier</span>
               </h1>
 
-              <p className="text-gray-600 text-xs md:text-sm leading-relaxed max-w-xl">
+              <p className="text-gray-200 text-xs md:text-sm leading-relaxed">
                 Track your Quran memorization, revision, and daily progress with precision analytics and smart revision algorithms.
               </p>
 
               {/* Feature Highlights */}
-              <div className="grid grid-cols-2 gap-3 max-w-md pt-1 text-xs text-gray-700 font-medium">
+              <div className="grid grid-cols-2 gap-3 max-w-md pt-1 text-xs text-gray-200 font-medium">
                 <div className="flex items-center gap-2">
-                  <span className="text-[#0d472a]">✓</span> Smart Revision System
+                  <span className="text-emerald-400 font-bold">✓</span> Smart Revision System
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[#0d472a]">✓</span> Audio Listening
+                  <span className="text-emerald-400 font-bold">✓</span> Audio Listening
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[#0d472a]">✓</span> Detailed Progress Stats
+                  <span className="text-emerald-400 font-bold">✓</span> Detailed Progress Stats
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[#0d472a]">✓</span> Repetition Analysis
+                  <span className="text-emerald-400 font-bold">✓</span> Repetition Analysis
                 </div>
               </div>
 
               {/* CTA Buttons */}
-              <div className="flex items-center gap-4 pt-2">
+              <div className="flex items-center gap-4 pt-4">
                 <button
                   onClick={() => openAuthModal('signup')}
-                  className="px-6 py-3 bg-[#0d472a] hover:bg-emerald-900 text-white font-semibold rounded-xl shadow-md text-xs transition"
+                  className="px-6 py-3 bg-[#0d472a] hover:bg-emerald-800 text-white font-semibold rounded-xl shadow-md text-xs transition"
                 >
                   Get Started Free
                 </button>
                 <button
                   onClick={() => setShowDemoModal(true)}
-                  className="px-5 py-3 border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 font-semibold rounded-xl text-xs transition flex items-center gap-2"
+                  className="px-5 py-3 border border-white/30 bg-white/10 text-white hover:bg-white/20 backdrop-blur-md font-semibold rounded-xl text-xs transition flex items-center gap-2"
                 >
                   <span>▶</span> Watch Demo
                 </button>
-              </div>
-            </div>
-
-            {/* Right Side Image Box */}
-            <div className="md:col-span-5 flex justify-center items-center">
-              <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white w-full max-w-md">
-                <img 
-                  src="/img.jpg" 
-                  alt="Quran Memorization" 
-                  className="w-full h-80 object-cover"
-                />
               </div>
             </div>
           </div>
@@ -186,7 +192,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
           </div>
         </section>
 
-        {/* Simple Pricing Section */}
+        {/* Pricing Section - Converted to PKR */}
         <section id="pricing" className="py-16 bg-slate-50 border-t border-gray-200/60">
           <div className="max-w-4xl mx-auto px-6 space-y-10">
             <div className="text-center space-y-2">
@@ -218,7 +224,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
               <div className="p-6 bg-[#0d472a] text-white rounded-2xl shadow-xl space-y-5 flex flex-col justify-between">
                 <div>
                   <h3 className="font-bold text-sm text-emerald-100">HifzMate Pro</h3>
-                  <div className="mt-3 text-3xl font-extrabold">$5 <span className="text-xs font-normal text-emerald-200">/ month</span></div>
+                  <div className="mt-3 text-3xl font-extrabold">Rs. 1,400 <span className="text-xs font-normal text-emerald-200">/ month</span></div>
                   <ul className="mt-4 space-y-2.5 text-xs text-emerald-100">
                     <li className="flex items-center gap-2"><span>✓</span> Unlimited Recitation AI Tests</li>
                     <li className="flex items-center gap-2"><span>✓</span> Detailed Weak Verse Analytics</li>
@@ -266,6 +272,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
           <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl relative">
             <button 
               onClick={() => setShowAuthModal(false)}
+              disabled={isLoading}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 font-bold text-sm"
             >
               ✕
@@ -289,6 +296,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
                   <input
                     type="text"
                     required
+                    disabled={isLoading}
                     autoComplete="off"
                     placeholder="Enter your name"
                     value={formData.name}
@@ -304,6 +312,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
                 <input
                   type="email"
                   required
+                  disabled={isLoading}
                   autoComplete="new-email"
                   placeholder="name@example.com"
                   value={formData.email}
@@ -318,6 +327,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
                 <input
                   type="password"
                   required
+                  disabled={isLoading}
                   autoComplete="new-password"
                   placeholder="••••••••"
                   value={formData.password}
@@ -328,9 +338,17 @@ export default function LandingPage({ onNavigateToDashboard }) {
 
               <button
                 type="submit"
-                className="w-full py-2.5 bg-[#0d472a] hover:bg-emerald-900 text-white font-semibold text-xs rounded-xl shadow transition"
+                disabled={isLoading}
+                className="w-full py-2.5 bg-[#0d472a] hover:bg-emerald-900 text-white font-semibold text-xs rounded-xl shadow transition flex justify-center items-center gap-2 disabled:opacity-75"
               >
-                {authMode === 'login' ? 'Login' : 'Sign Up'}
+                {isLoading ? (
+                  <>
+                    <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                    <span>Loading in Process...</span>
+                  </>
+                ) : (
+                  authMode === 'login' ? 'Login' : 'Sign Up'
+                )}
               </button>
             </form>
 
@@ -340,6 +358,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
                   Don't have an account?{' '}
                   <button 
                     onClick={() => setAuthMode('signup')} 
+                    disabled={isLoading}
                     className="text-[#0d472a] font-semibold hover:underline"
                   >
                     Sign Up
@@ -350,6 +369,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
                   Already have an account?{' '}
                   <button 
                     onClick={() => setAuthMode('login')} 
+                    disabled={isLoading}
                     className="text-[#0d472a] font-semibold hover:underline"
                   >
                     Login
@@ -403,6 +423,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
           <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl relative">
             <button 
               onClick={() => setShowPaymentModal(false)}
+              disabled={isLoading}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 font-bold text-sm"
             >
               ✕
@@ -410,7 +431,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
 
             <div className="text-center space-y-1">
               <h3 className="font-bold text-xl text-gray-900">Upgrade to HifzMate Pro</h3>
-              <p className="text-xs text-gray-500">Subscribe for $5/month to unlock all features</p>
+              <p className="text-xs text-gray-500">Subscribe for Rs. 1,400/month to unlock all features</p>
             </div>
 
             <form onSubmit={handlePaymentSubmit} className="space-y-4 pt-2">
@@ -418,11 +439,11 @@ export default function LandingPage({ onNavigateToDashboard }) {
                 <label className="block text-xs font-semibold text-gray-700 mb-1">Select Payment Method</label>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <label className="flex items-center gap-2 border p-2.5 rounded-lg cursor-pointer hover:bg-gray-50">
-                    <input type="radio" name="payment" defaultChecked />
+                    <input type="radio" name="payment" defaultChecked disabled={isLoading} />
                     <span>💳 Credit Card</span>
                   </label>
                   <label className="flex items-center gap-2 border p-2.5 rounded-lg cursor-pointer hover:bg-gray-50">
-                    <input type="radio" name="payment" />
+                    <input type="radio" name="payment" disabled={isLoading} />
                     <span>📱 EasyPaisa / JazzCash</span>
                   </label>
                 </div>
@@ -433,6 +454,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
                 <input
                   type="text"
                   required
+                  disabled={isLoading}
                   placeholder="03001234567 or Card Number"
                   className="w-full px-3.5 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0d472a]"
                 />
@@ -440,9 +462,17 @@ export default function LandingPage({ onNavigateToDashboard }) {
 
               <button
                 type="submit"
-                className="w-full py-2.5 bg-[#0d472a] hover:bg-emerald-900 text-white font-semibold text-xs rounded-xl shadow transition"
+                disabled={isLoading}
+                className="w-full py-2.5 bg-[#0d472a] hover:bg-emerald-900 text-white font-semibold text-xs rounded-xl shadow transition flex justify-center items-center gap-2 disabled:opacity-75"
               >
-                Pay $5 & Activate Pro
+                {isLoading ? (
+                  <>
+                    <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                    <span>Loading in Process...</span>
+                  </>
+                ) : (
+                  'Pay Rs. 1,400 & Activate Pro'
+                )}
               </button>
             </form>
           </div>

@@ -125,9 +125,9 @@ const removeArabicDiacritics = (text) => {
 
 export default function QuranRecitationTest() {
   const [selectedSurah, setSelectedSurah] = useState(1);
-  const [selectedAyah, setSelectedAyah] = useState(1);
-  const [ayahText, setAyahText] = useState('');
-  const [loadingAyah, setLoadingAyah] = useState(false);
+  const [selectedAyah, setSelectedAyah] = useState('full'); // 'full' means Full Surah Test
+  const [targetText, setTargetText] = useState('');
+  const [loadingText, setLoadingText] = useState(false);
   
   const [isRecording, setIsRecording] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -138,24 +138,35 @@ export default function QuranRecitationTest() {
 
   const recognitionRef = useRef(null);
 
-  // Dynamic API Fetching for Selected Surah and Ayah
+  // Dynamic API Fetching for Selected Surah or Single Ayah
   useEffect(() => {
-    const fetchAyah = async () => {
-      setLoadingAyah(true);
+    const fetchTargetText = async () => {
+      setLoadingText(true);
       try {
-        const response = await fetch(`https://api.alquran.cloud/v1/ayah/${selectedSurah}:${selectedAyah}/quran-simple`);
-        const data = await response.json();
-        if (data.status === 'OK') {
-          setAyahText(data.data.text);
+        if (selectedAyah === 'full') {
+          // Fetch full Surah text
+          const response = await fetch(`https://api.alquran.cloud/v1/surah/${selectedSurah}/quran-simple`);
+          const data = await response.json();
+          if (data.status === 'OK') {
+            const fullSurahText = data.data.ayahs.map(a => a.text).join(' ');
+            setTargetText(fullSurahText);
+          }
+        } else {
+          // Fetch single Ayah text
+          const response = await fetch(`https://api.alquran.cloud/v1/ayah/${selectedSurah}:${selectedAyah}/quran-simple`);
+          const data = await response.json();
+          if (data.status === 'OK') {
+            setTargetText(data.data.text);
+          }
         }
       } catch (err) {
-        console.error('Error fetching ayah data:', err);
+        console.error('Error fetching text data:', err);
       } finally {
-        setLoadingAyah(false);
+        setLoadingText(false);
       }
     };
 
-    fetchAyah();
+    fetchTargetText();
     setTranscript('');
     setWordAnalysis([]);
     setAccuracy(null);
@@ -188,7 +199,7 @@ export default function QuranRecitationTest() {
     setIsAnalyzing(true);
 
     setTimeout(() => {
-      const rawOriginalWords = ayahText.split(' ');
+      const rawOriginalWords = targetText.split(' ').filter(w => w.trim() !== '');
       const cleanOriginalWords = rawOriginalWords.map(w => removeArabicDiacritics(w));
       const cleanUserWords = removeArabicDiacritics(userText).split(' ').filter(w => w !== '');
 
@@ -256,7 +267,7 @@ export default function QuranRecitationTest() {
         <div className="flex justify-between items-center bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
           <div>
             <h1 className="text-xl font-bold text-gray-900">Full Quran AI Recitation Tester</h1>
-            <p className="text-xs text-gray-500">Test all 114 Surahs with dynamic real-time speech comparison</p>
+            <p className="text-xs text-gray-500">Test single Ayah or Full Surah with dynamic real-time speech comparison</p>
           </div>
           
           <div className={`text-xs px-3 py-1.5 rounded-full font-bold flex items-center gap-2 ${
@@ -269,7 +280,7 @@ export default function QuranRecitationTest() {
           </div>
         </div>
 
-        {/* Dynamic Surah & Ayah Selection Dropdowns */}
+        {/* Dynamic Surah & Ayah/Full Selection Dropdowns */}
         <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
@@ -278,7 +289,7 @@ export default function QuranRecitationTest() {
                 value={selectedSurah}
                 onChange={(e) => {
                   setSelectedSurah(Number(e.target.value));
-                  setSelectedAyah(1);
+                  setSelectedAyah('full');
                 }}
                 className="w-full text-xs bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 outline-none focus:border-[#0d472a]"
               >
@@ -291,31 +302,34 @@ export default function QuranRecitationTest() {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-gray-700 mb-2">Select Ayah Number:</label>
+              <label className="block text-xs font-bold text-gray-700 mb-2">Select Test Scope (Ayah or Full Surah):</label>
               <select
                 value={selectedAyah}
-                onChange={(e) => setSelectedAyah(Number(e.target.value))}
+                onChange={(e) => setSelectedAyah(e.target.value === 'full' ? 'full' : Number(e.target.value))}
                 className="w-full text-xs bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 outline-none focus:border-[#0d472a]"
               >
+                <option value="full">✨ Full Surah Test ({currentSurahData.verses} Verses)</option>
                 {Array.from({ length: currentSurahData.verses }, (_, i) => i + 1).map((num) => (
                   <option key={num} value={num}>
-                    Ayah {num}
+                    Single Ayah {num}
                   </option>
                 ))}
               </select>
             </div>
           </div>
 
-          {/* Reference Ayah Display Box */}
+          {/* Reference Display Box */}
           <div className="p-4 bg-emerald-50/50 rounded-xl border border-emerald-100 text-center">
             <span className="text-xs text-gray-400 font-bold block mb-1">
-              Surah {currentSurahData.name} - Ayah {selectedAyah} Target Text:
+              Surah {currentSurahData.name} - {selectedAyah === 'full' ? 'Full Surah Target Text' : `Ayah ${selectedAyah} Target Text`}:
             </span>
-            {loadingAyah ? (
-              <span className="text-xs text-emerald-700 animate-pulse font-semibold">Loading Ayah text from Quran API...</span>
+            {loadingText ? (
+              <span className="text-xs text-emerald-700 animate-pulse font-semibold">
+                Loading Quran text from API...
+              </span>
             ) : (
-              <p className="text-2xl font-serif text-[#0d472a] dir-rtl leading-relaxed">
-                {ayahText}
+              <p className="text-2xl font-serif text-[#0d472a] dir-rtl leading-relaxed max-h-48 overflow-y-auto px-2">
+                {targetText}
               </p>
             )}
           </div>
@@ -325,7 +339,7 @@ export default function QuranRecitationTest() {
         <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm text-center space-y-4">
           <button
             onClick={handleToggleRecording}
-            disabled={isAnalyzing || loadingAyah}
+            disabled={isAnalyzing || loadingText}
             className={`w-24 h-24 rounded-full flex items-center justify-center text-3xl shadow-xl transition-all mx-auto ${
               isRecording 
                 ? 'bg-red-600 text-white animate-pulse ring-8 ring-red-100' 
@@ -340,7 +354,7 @@ export default function QuranRecitationTest() {
           </p>
 
           {transcript && (
-            <div className="p-3 bg-slate-100 rounded-xl text-right font-serif text-lg text-gray-800 border dir-rtl">
+            <div className="p-3 bg-slate-100 rounded-xl text-right font-serif text-lg text-gray-800 border dir-rtl max-h-40 overflow-y-auto">
               {transcript}
             </div>
           )}
@@ -350,7 +364,7 @@ export default function QuranRecitationTest() {
         {wordAnalysis.length > 0 && (
           <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm space-y-3">
             <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Word-by-Word Color Feedback</h3>
-            <div className="flex flex-wrap gap-2 justify-end dir-rtl p-4 bg-gray-50 rounded-xl border border-gray-100">
+            <div className="flex flex-wrap gap-2 justify-end dir-rtl p-4 bg-gray-50 rounded-xl border border-gray-100 max-h-60 overflow-y-auto">
               {wordAnalysis.map((item, idx) => (
                 <span
                   key={idx}
@@ -379,13 +393,13 @@ export default function QuranRecitationTest() {
               </span>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-3 max-h-60 overflow-y-auto">
               {mistakes.length === 0 ? (
                 <div className="text-center py-4 text-emerald-700 font-bold text-sm">
                   🎉 MashaAllah! No mistakes detected in your recitation.
                 </div>
               ) : (
-                mistakes.map((m, idx) => (
+                mistakes.map((m, idx)=> (
                   <div key={idx} className="p-3 rounded-xl bg-red-50 border border-red-100 flex justify-between items-center">
                     <div className="flex items-center gap-2">
                       <span className="text-xs bg-red-600 text-white font-bold px-2 py-0.5 rounded">
@@ -402,17 +416,17 @@ export default function QuranRecitationTest() {
                       <span className="text-gray-300">➔</span>
                       <div>
                         <span className="text-gray-400 block text-[10px]">Recited</span>
-                      <span className="text-red-600 font-serif text-base">{m.recited}</span>
+                        <span className="text-red-600 font-serif text-base">{m.recited}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
-            )}
+                ))
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
+      </div>
     </div>
-  </div>
-);
+  );
 }
