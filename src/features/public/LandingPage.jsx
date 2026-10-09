@@ -9,6 +9,13 @@ export default function LandingPage({ onNavigateToDashboard }) {
   // Loading state
   const [isLoading, setIsLoading] = useState(false);
   
+  // State for interactive FAQ accordions
+  const [openFaqIndex, setOpenFaqIndex] = useState(null);
+
+  const toggleFaq = (index) => {
+    setOpenFaqIndex(openFaqIndex === index ? null : index);
+  };
+  
   const [formData, setFormData] = useState({ 
     email: '', 
     password: '', 
@@ -69,8 +76,9 @@ export default function LandingPage({ onNavigateToDashboard }) {
             <div className="hidden md:flex items-center gap-8 text-xs font-semibold text-gray-600">
               <a href="#home" className="hover:text-[#0d472a] transition-colors">Home</a>
               <a href="#features" className="hover:text-[#0d472a] transition-colors">Features</a>
+              <a href="#testimonials" className="hover:text-[#0d472a] transition-colors">Testimonials</a>
               <a href="#pricing" className="hover:text-[#0d472a] transition-colors">Pricing</a>
-              <a href="#about" className="hover:text-[#0d472a] transition-colors">About</a>
+              <a href="#faq" className="hover:text-[#0d472a] transition-colors">FAQ</a>
             </div>
 
             {/* Right Buttons */}
@@ -150,8 +158,30 @@ export default function LandingPage({ onNavigateToDashboard }) {
           </div>
         </section>
 
+        {/* Live Platform Statistics Bar */}
+        <section className="bg-white border-b border-gray-100 py-8">
+          <div className="max-w-6xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div className="space-y-1">
+              <div className="text-2xl font-black text-[#0d472a]">100%</div>
+              <div className="text-xs text-gray-500 font-medium">Real-Time Tracking</div>
+            </div>
+            <div className="space-y-1">
+              <div className="text-2xl font-black text-[#0d472a]">24/7</div>
+              <div className="text-xs text-gray-500 font-medium">AI Recitation Access</div>
+            </div>
+            <div className="space-y-1">
+              <div className="text-2xl font-black text-[#0d472a]">3 Roles</div>
+              <div className="text-xs text-gray-500 font-medium">Student, Teacher & Parent</div>
+            </div>
+            <div className="space-y-1">
+              <div className="text-2xl font-black text-[#0d472a]">Smart</div>
+              <div className="text-xs text-gray-500 font-medium">Revision Scheduling</div>
+            </div>
+          </div>
+        </section>
+
         {/* Key Features Section */}
-        <section id="features" className="py-16 bg-white border-t border-gray-100">
+        <section id="features" className="py-16 bg-slate-50/50 border-t border-gray-100">
           <div className="max-w-6xl mx-auto px-6 space-y-10">
             <div className="text-center space-y-2">
               <h2 className="text-2xl font-bold text-gray-900">Key Features</h2>
@@ -159,7 +189,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
-              <div className="p-6 bg-slate-50/70 rounded-2xl border border-gray-100 space-y-3">
+              <div className="p-6 bg-white rounded-2xl border border-gray-200/80 shadow-sm space-y-3">
                 <div className="w-9 h-9 rounded-xl bg-emerald-100/80 text-[#0d472a] flex items-center justify-center font-bold text-base">
                   🎙️
                 </div>
@@ -169,7 +199,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
                 </p>
               </div>
 
-              <div className="p-6 bg-slate-50/70 rounded-2xl border border-gray-100 space-y-3">
+              <div className="p-6 bg-white rounded-2xl border border-gray-200/80 shadow-sm space-y-3">
                 <div className="w-9 h-9 rounded-xl bg-emerald-100/80 text-[#0d472a] flex items-center justify-center font-bold text-base">
                   🔄
                 </div>
@@ -179,7 +209,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
                 </p>
               </div>
 
-              <div className="p-6 bg-slate-50/70 rounded-2xl border border-gray-100 space-y-3">
+              <div className="p-6 bg-white rounded-2xl border border-gray-200/80 shadow-sm space-y-3">
                 <div className="w-9 h-9 rounded-xl bg-emerald-100/80 text-[#0d472a] flex items-center justify-center font-bold text-base">
                   📊
                 </div>
@@ -187,6 +217,48 @@ export default function LandingPage({ onNavigateToDashboard }) {
                 <p className="text-xs text-gray-500 leading-relaxed">
                   Track surah, juz, and accuracy trends over time with clean interactive charts.
                 </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Professional Testimonials Section */}
+        <section id="testimonials" className="py-16 bg-white border-t border-gray-100">
+          <div className="max-w-6xl mx-auto px-6 space-y-10">
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl font-bold text-gray-900">What Users Say</h2>
+              <p className="text-gray-500 text-xs">Trusted by students and instructors for efficient Quran revision.</p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+              <div className="p-6 bg-slate-50 rounded-2xl border border-gray-200/60 space-y-4">
+                <p className="text-xs text-gray-600 leading-relaxed italic">
+                  "HifzMate Pro has completely transformed how I practice my daily revision. The real-time speech matching helps catch minor pronunciation slips instantly."
+                </p>
+                <div className="flex items-center gap-3 pt-2 border-t border-gray-200/40">
+                  <div className="w-8 h-8 rounded-full bg-[#0d472a] text-white flex items-center justify-center font-bold text-xs">
+                    AH
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-xs text-gray-900">Ahmed Hassan</h4>
+                    <p className="text-[11px] text-gray-500">Hifz Student</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6 bg-slate-50 rounded-2xl border border-gray-200/60 space-y-4">
+                <p className="text-xs text-gray-600 leading-relaxed italic">
+                  "As a teacher, monitoring multiple students used to be challenging. The teacher dashboard gives clear insights into who needs help with their Manzil."
+                </p>
+                <div className="flex items-center gap-3 pt-2 border-t border-gray-200/40">
+                  <div className="w-8 h-8 rounded-full bg-[#0d472a] text-white flex items-center justify-center font-bold text-xs">
+                    UQ
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-xs text-gray-900">Qari Usman</h4>
+                    <p className="text-[11px] text-gray-500">Quran Instructor</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -241,6 +313,48 @@ export default function LandingPage({ onNavigateToDashboard }) {
             </div>
           </div>
         </section>
+
+        {/* Interactive FAQ Section */}
+        <section id="faq" className="py-16 bg-white border-t border-gray-100">
+          <div className="max-w-3xl mx-auto px-6 space-y-8">
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl font-bold text-gray-900">Frequently Asked Questions</h2>
+              <p className="text-gray-500 text-xs">Got questions about HifzMate Pro? Find answers below.</p>
+            </div>
+
+            <div className="space-y-3">
+              {[
+                {
+                  q: "How does the AI Recitation test work?",
+                  a: "The platform uses web speech recognition to listen to your recitation in real-time, comparing your spoken words with the database text to verify accuracy."
+                },
+                {
+                  q: "Can teachers and parents track multiple students?",
+                  a: "Yes! Pro accounts include dedicated multi-role dashboards for teachers and parents to monitor performance metrics effortlessly."
+                },
+                {
+                  q: "Is my personal data and account secure?",
+                  a: "All user sessions and authentication data are securely managed to ensure complete privacy and data integrity."
+                }
+              ].map((item, index) => (
+                <div key={index} className="border border-gray-200/80 rounded-xl overflow-hidden bg-slate-50/50">
+                  <button
+                    onClick={() => toggleFaq(index)}
+                    className="w-full px-5 py-4 text-left font-semibold text-xs text-gray-800 flex justify-between items-center hover:bg-slate-100/60 transition"
+                  >
+                    <span>{item.q}</span>
+                    <span className="text-emerald-700 font-bold">{openFaqIndex === index ? '−' : '+'}</span>
+                  </button>
+                  {openFaqIndex === index && (
+                    <div className="px-5 pb-4 text-xs text-gray-600 leading-relaxed border-t border-gray-100 pt-3">
+                      {item.a}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
       </div>
 
       {/* Solid Dark Green Footer */}
@@ -256,8 +370,9 @@ export default function LandingPage({ onNavigateToDashboard }) {
           <div className="flex flex-wrap justify-center gap-6 text-xs text-emerald-200">
             <a href="#home" className="hover:text-white transition">Home</a>
             <a href="#features" className="hover:text-white transition">Features</a>
+            <a href="#testimonials" className="hover:text-white transition">Testimonials</a>
             <a href="#pricing" className="hover:text-white transition">Pricing</a>
-            <a href="#about" className="hover:text-white transition">About</a>
+            <a href="#faq" className="hover:text-white transition">FAQ</a>
           </div>
 
           <p className="text-[11px] text-emerald-300/70">
@@ -286,7 +401,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
                 {authMode === 'login' 
                   ? 'Enter your details to log in' 
                   : 'Enter your details to register'}
-              </p>
+                  </p>
             </div>
 
             <form onSubmit={handleAuthSubmit} className="space-y-4 pt-2" autoComplete="off">
@@ -357,6 +472,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
                 <p>
                   Don't have an account?{' '}
                   <button 
+                    type="button"
                     onClick={() => setAuthMode('signup')} 
                     disabled={isLoading}
                     className="text-[#0d472a] font-semibold hover:underline"
@@ -368,6 +484,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
                 <p>
                   Already have an account?{' '}
                   <button 
+                    type="button"
                     onClick={() => setAuthMode('login')} 
                     disabled={isLoading}
                     className="text-[#0d472a] font-semibold hover:underline"
