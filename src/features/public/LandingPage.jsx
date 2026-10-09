@@ -23,23 +23,36 @@ export default function LandingPage({ onNavigateToDashboard }) {
     name: '' 
   });
 
-  // Testimonials state fetched from Supabase
-  const [testimonials, setTestimonials] = useState([
-    {
-      name: "Ahmed Hassan",
-      role: "Hifz Student",
-      text: "HifzMate Pro has completely transformed how I practice my daily revision. The real-time speech matching helps catch minor pronunciation slips instantly.",
-      initials: "AH"
-    },
-    {
-      name: "Qari Usman",
-      role: "Quran Instructor",
-      text: "As a teacher, monitoring multiple students used to be challenging. The teacher dashboard gives clear insights into who needs help with their Manzil.",
-      initials: "UQ"
+// Testimonials state with localStorage persistence so data survives page refreshes
+  const [testimonials, setTestimonials] = useState(() => {
+    const savedFeedbacks = localStorage.getItem('hifzmate_testimonials');
+    if (savedFeedbacks) {
+      try {
+        return JSON.parse(savedFeedbacks);
+      } catch (e) {
+        console.error('Error parsing local testimonials', e);
+      }
     }
-  ]);
+    return [
+      {
+        name: "Ahmed Hassan",
+        role: "Hifz Student",
+        text: "HifzMate Pro has completely transformed how I practice my daily revision. The real-time speech matching helps catch minor pronunciation slips instantly.",
+        initials: "AH"
+      },
+      {
+        name: "Qari Usman",
+        role: "Quran Instructor",
+        text: "As a teacher, monitoring multiple students used to be challenging. The teacher dashboard gives clear insights into who needs help with their Manzil.",
+        initials: "UQ"
+      }
+    ];
+  });
 
-  const [newFeedback, setNewFeedback] = useState({ name: '', role: '', text: '' });
+  // Save testimonials to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('hifzmate_testimonials', JSON.stringify(testimonials));
+  }, [testimonials]);
 
   // Fetch feedback from Supabase on component load
   useEffect(() => {
@@ -63,34 +76,16 @@ export default function LandingPage({ onNavigateToDashboard }) {
     }
   };
 
-  const handleFeedbackSubmit = async (e) => {
+   const handleFeedbackSubmit = (e) => {
     e.preventDefault();
     if (!newFeedback.name || !newFeedback.text) return;
     
-    setIsLoading(true);
     const initials = newFeedback.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-    const feedbackPayload = {
-      name: newFeedback.name,
-      role: newFeedback.role || 'Student',
-      text: newFeedback.text
-    };
-
-    try {
-      const { error } = await supabase.from('public_feedbacks').insert([feedbackPayload]);
-      
-      if (error) {
-        console.error('Supabase insert error:', error);
-        alert('Failed to save feedback to database.');
-      } else {
-        setTestimonials([...testimonials, { ...feedbackPayload, initials }]);
-        setNewFeedback({ name: '', role: '', text: '' });
-        alert('Thank you! Your feedback has been saved successfully to the database.');
-      }
-    } catch (err) {
-      console.error('Submission error:', err);
-    } finally {
-      setIsLoading(false);
-    }
+    const updatedTestimonials = [...testimonials, { ...newFeedback, role: newFeedback.role || 'Student', initials }];
+    
+    setTestimonials(updatedTestimonials);
+    setNewFeedback({ name: '', role: '', text: '' });
+    alert('Thank you! Your feedback has been added and saved successfully.');
   };
 
   const openAuthModal = (mode = 'login') => {
