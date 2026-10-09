@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function LandingPage({ onNavigateToDashboard }) {
   const [showDemoModal, setShowDemoModal] = useState(false);
@@ -22,13 +22,40 @@ export default function LandingPage({ onNavigateToDashboard }) {
     name: '' 
   });
 
+  // Testimonials state allowing new user feedback additions
+  const [testimonials, setTestimonials] = useState([
+    {
+      name: "Ahmed Hassan",
+      role: "Hifz Student",
+      text: "HifzMate Pro has completely transformed how I practice my daily revision. The real-time speech matching helps catch minor pronunciation slips instantly.",
+      initials: "AH"
+    },
+    {
+      name: "Qari Usman",
+      role: "Quran Instructor",
+      text: "As a teacher, monitoring multiple students used to be challenging. The teacher dashboard gives clear insights into who needs help with their Manzil.",
+      initials: "UQ"
+    }
+  ]);
+
+  const [newFeedback, setNewFeedback] = useState({ name: '', role: '', text: '' });
+
+  const handleFeedbackSubmit = (e) => {
+    e.preventDefault();
+    if (!newFeedback.name || !newFeedback.text) return;
+    const initials = newFeedback.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+    setTestimonials([...testimonials, { ...newFeedback, role: newFeedback.role || 'Student', initials }]);
+    setNewFeedback({ name: '', role: '', text: '' });
+    alert('Thank you! Your feedback has been added successfully.');
+  };
+
   const openAuthModal = (mode = 'login') => {
     setAuthMode(mode);
     setFormData({ email: '', password: '', name: '' });
     setShowAuthModal(true);
   };
 
-  // Handle Form Submission with Loading State
+  // Handle Form Submission with Loading State & Session Storage
   const handleAuthSubmit = (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -36,6 +63,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
     setTimeout(() => {
       setIsLoading(false);
       setShowAuthModal(false);
+      sessionStorage.setItem('hifzmate_logged_in', 'true');
       if (onNavigateToDashboard) {
         onNavigateToDashboard();
       }
@@ -51,6 +79,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
       setIsLoading(false);
       alert('Payment Successful! Welcome to HifzMate Pro.');
       setShowPaymentModal(false);
+      sessionStorage.setItem('hifzmate_logged_in', 'true');
       if (onNavigateToDashboard) {
         onNavigateToDashboard();
       }
@@ -99,43 +128,43 @@ export default function LandingPage({ onNavigateToDashboard }) {
           </div>
         </nav>
 
-        {/* Hero Section with Full Background Image */}
+        {/* Hero Section with Clear Background Image (No Dark Overlay) */}
         <section 
           id="home" 
           className="relative py-24 px-6 bg-cover bg-center bg-no-repeat min-h-[85vh] flex items-center"
           style={{ backgroundImage: `url('/img.jpg')` }}
         >
-          {/* Overlay to ensure text readability */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-transparent"></div>
+          {/* Subtle lighter gradient so text remains readable while keeping the image vibrant */}
+          <div className="absolute inset-0 bg-black/40"></div>
 
           <div className="relative max-w-7xl mx-auto w-full z-10">
             <div className="max-w-xl space-y-6 text-left">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold backdrop-blur-sm">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/30 text-emerald-200 border border-emerald-400/40 text-xs font-semibold backdrop-blur-sm">
                 ✨ Next-Gen Quran Memorization Platform
               </div>
 
-              <h1 className="text-3xl md:text-5xl font-extrabold text-white leading-tight tracking-tight">
+              <h1 className="text-3xl md:text-5xl font-extrabold text-white leading-tight tracking-tight drop-shadow-sm">
                 Your Hifz Journey, <br />
-                <span className="text-emerald-400">Smarter & Easier</span>
+                <span className="text-emerald-300">Smarter & Easier</span>
               </h1>
 
-              <p className="text-gray-200 text-xs md:text-sm leading-relaxed">
+              <p className="text-gray-100 text-xs md:text-sm leading-relaxed drop-shadow-sm">
                 Track your Quran memorization, revision, and daily progress with precision analytics and smart revision algorithms.
               </p>
 
               {/* Feature Highlights */}
-              <div className="grid grid-cols-2 gap-3 max-w-md pt-1 text-xs text-gray-200 font-medium">
+              <div className="grid grid-cols-2 gap-3 max-w-md pt-1 text-xs text-white font-medium">
                 <div className="flex items-center gap-2">
-                  <span className="text-emerald-400 font-bold">✓</span> Smart Revision System
+                  <span className="text-emerald-300 font-bold">✓</span> Smart Revision System
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-emerald-400 font-bold">✓</span> Audio Listening
+                  <span className="text-emerald-300 font-bold">✓</span> Audio Listening
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-emerald-400 font-bold">✓</span> Detailed Progress Stats
+                  <span className="text-emerald-300 font-bold">✓</span> Detailed Progress Stats
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-emerald-400 font-bold">✓</span> Repetition Analysis
+                  <span className="text-emerald-300 font-bold">✓</span> Repetition Analysis
                 </div>
               </div>
 
@@ -149,7 +178,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
                 </button>
                 <button
                   onClick={() => setShowDemoModal(true)}
-                  className="px-5 py-3 border border-white/30 bg-white/10 text-white hover:bg-white/20 backdrop-blur-md font-semibold rounded-xl text-xs transition flex items-center gap-2"
+                  className="px-5 py-3 border border-white/40 bg-white/20 text-white hover:bg-white/30 backdrop-blur-md font-semibold rounded-xl text-xs transition flex items-center gap-2"
                 >
                   <span>▶</span> Watch Demo
                 </button>
@@ -231,35 +260,60 @@ export default function LandingPage({ onNavigateToDashboard }) {
             </div>
 
             <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-              <div className="p-6 bg-slate-50 rounded-2xl border border-gray-200/60 space-y-4">
-                <p className="text-xs text-gray-600 leading-relaxed italic">
-                  "HifzMate Pro has completely transformed how I practice my daily revision. The real-time speech matching helps catch minor pronunciation slips instantly."
-                </p>
-                <div className="flex items-center gap-3 pt-2 border-t border-gray-200/40">
-                  <div className="w-8 h-8 rounded-full bg-[#0d472a] text-white flex items-center justify-center font-bold text-xs">
-                    AH
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-xs text-gray-900">Ahmed Hassan</h4>
-                    <p className="text-[11px] text-gray-500">Hifz Student</p>
+              {testimonials.map((t, idx) => (
+                <div key={idx} className="p-6 bg-slate-50 rounded-2xl border border-gray-200/60 space-y-4 shadow-sm">
+                  <p className="text-xs text-gray-600 leading-relaxed italic">
+                    "{t.text}"
+                  </p>
+                  <div className="flex items-center gap-3 pt-2 border-t border-gray-200/40">
+                    <div className="w-8 h-8 rounded-full bg-[#0d472a] text-white flex items-center justify-center font-bold text-xs">
+                      {t.initials}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-xs text-gray-900">{t.name}</h4>
+                      <p className="text-[11px] text-gray-500">{t.role}</p>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ))}
+            </div>
 
-              <div className="p-6 bg-slate-50 rounded-2xl border border-gray-200/60 space-y-4">
-                <p className="text-xs text-gray-600 leading-relaxed italic">
-                  "As a teacher, monitoring multiple students used to be challenging. The teacher dashboard gives clear insights into who needs help with their Manzil."
-                </p>
-                <div className="flex items-center gap-3 pt-2 border-t border-gray-200/40">
-                  <div className="w-8 h-8 rounded-full bg-[#0d472a] text-white flex items-center justify-center font-bold text-xs">
-                    UQ
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-xs text-gray-900">Qari Usman</h4>
-                    <p className="text-[11px] text-gray-500">Quran Instructor</p>
-                  </div>
+            {/* Add New Feedback Form for Users / Presentation Demo */}
+            <div className="max-w-xl mx-auto bg-slate-50 border border-gray-200 rounded-2xl p-6 space-y-4 shadow-sm mt-8">
+              <h3 className="font-bold text-sm text-gray-900 text-center">Share Your Feedback</h3>
+              <form onSubmit={handleFeedbackSubmit} className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <input
+                    type="text"
+                    required
+                    placeholder="Your Name"
+                    value={newFeedback.name}
+                    onChange={(e) => setNewFeedback({ ...newFeedback, name: e.target.value })}
+                    className="px-3 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0d472a]"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Role (e.g. Student / Teacher)"
+                    value={newFeedback.role}
+                    onChange={(e) => setNewFeedback({ ...newFeedback, role: e.target.value })}
+                    className="px-3 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0d472a]"
+                  />
                 </div>
-              </div>
+                <textarea
+                  required
+                  rows="2"
+                  placeholder="Write your review or experience here..."
+                  value={newFeedback.text}
+                  onChange={(e) => setNewFeedback({ ...newFeedback, text: e.target.value })}
+                  className="w-full px-3 py-2 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0d472a]"
+                ></textarea>
+                <button
+                  type="submit"
+                  className="w-full py-2 bg-[#0d472a] hover:bg-emerald-900 text-white font-semibold text-xs rounded-xl transition shadow"
+                >
+                  Submit Feedback
+                </button>
+              </form>
             </div>
           </div>
         </section>
@@ -401,7 +455,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
                 {authMode === 'login' 
                   ? 'Enter your details to log in' 
                   : 'Enter your details to register'}
-                  </p>
+              </p>
             </div>
 
             <form onSubmit={handleAuthSubmit} className="space-y-4 pt-2" autoComplete="off">
