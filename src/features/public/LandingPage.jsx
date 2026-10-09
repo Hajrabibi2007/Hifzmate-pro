@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '../supabase';
 
 export default function LandingPage({ onNavigateToDashboard }) {
   const [showDemoModal, setShowDemoModal] = useState(false);
@@ -22,7 +23,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
     name: '' 
   });
 
-  // Testimonials state allowing new user feedback additions
+  // Testimonials state fetched from Supabase
   const [testimonials, setTestimonials] = useState([
     {
       name: "Ahmed Hassan",
@@ -40,13 +41,56 @@ export default function LandingPage({ onNavigateToDashboard }) {
 
   const [newFeedback, setNewFeedback] = useState({ name: '', role: '', text: '' });
 
-  const handleFeedbackSubmit = (e) => {
+  // Fetch feedback from Supabase on component load
+  useEffect(() => {
+    fetchFeedbacks();
+  }, []);
+
+  const fetchFeedbacks = async () => {
+    try {
+      const { data, error } = await supabase.from('public_feedbacks').select('*');
+      if (data && data.length > 0) {
+        const formatted = data.map(item => ({
+          name: item.name || 'Anonymous',
+          role: item.role || 'User',
+          text: item.text || '',
+          initials: (item.name || 'US').split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)
+        }));
+        setTestimonials(prev => [...prev, ...formatted]);
+      }
+    } catch (err) {
+      console.log('Error fetching feedback:', err);
+    }
+  };
+
+  const handleFeedbackSubmit = async (e) => {
     e.preventDefault();
     if (!newFeedback.name || !newFeedback.text) return;
+    
+    setIsLoading(true);
     const initials = newFeedback.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-    setTestimonials([...testimonials, { ...newFeedback, role: newFeedback.role || 'Student', initials }]);
-    setNewFeedback({ name: '', role: '', text: '' });
-    alert('Thank you! Your feedback has been added successfully.');
+    const feedbackPayload = {
+      name: newFeedback.name,
+      role: newFeedback.role || 'Student',
+      text: newFeedback.text
+    };
+
+    try {
+      const { error } = await supabase.from('public_feedbacks').insert([feedbackPayload]);
+      
+      if (error) {
+        console.error('Supabase insert error:', error);
+        alert('Failed to save feedback to database.');
+      } else {
+        setTestimonials([...testimonials, { ...feedbackPayload, initials }]);
+        setNewFeedback({ name: '', role: '', text: '' });
+        alert('Thank you! Your feedback has been saved successfully to the database.');
+      }
+    } catch (err) {
+      console.error('Submission error:', err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const openAuthModal = (mode = 'login') => {
@@ -128,13 +172,12 @@ export default function LandingPage({ onNavigateToDashboard }) {
           </div>
         </nav>
 
-        {/* Hero Section with Clear Background Image (No Dark Overlay) */}
+        {/* Hero Section with Clear Background Image */}
         <section 
           id="home" 
           className="relative py-24 px-6 bg-cover bg-center bg-no-repeat min-h-[85vh] flex items-center"
           style={{ backgroundImage: `url('/img.jpg')` }}
         >
-          {/* Subtle lighter gradient so text remains readable while keeping the image vibrant */}
           <div className="absolute inset-0 bg-black/40"></div>
 
           <div className="relative max-w-7xl mx-auto w-full z-10">
@@ -209,7 +252,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
           </div>
         </section>
 
-        {/* Key Features Section */}
+        {/* Key Features Section with Smooth Hover Lift Effect */}
         <section id="features" className="py-16 bg-slate-50/50 border-t border-gray-100">
           <div className="max-w-6xl mx-auto px-6 space-y-10">
             <div className="text-center space-y-2">
@@ -218,7 +261,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
             </div>
 
             <div className="grid md:grid-cols-3 gap-6">
-              <div className="p-6 bg-white rounded-2xl border border-gray-200/80 shadow-sm space-y-3">
+              <div className="p-6 bg-white rounded-2xl border border-gray-200/80 shadow-sm space-y-3 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl cursor-pointer">
                 <div className="w-9 h-9 rounded-xl bg-emerald-100/80 text-[#0d472a] flex items-center justify-center font-bold text-base">
                   🎙️
                 </div>
@@ -228,7 +271,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
                 </p>
               </div>
 
-              <div className="p-6 bg-white rounded-2xl border border-gray-200/80 shadow-sm space-y-3">
+              <div className="p-6 bg-white rounded-2xl border border-gray-200/80 shadow-sm space-y-3 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl cursor-pointer">
                 <div className="w-9 h-9 rounded-xl bg-emerald-100/80 text-[#0d472a] flex items-center justify-center font-bold text-base">
                   🔄
                 </div>
@@ -238,7 +281,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
                 </p>
               </div>
 
-              <div className="p-6 bg-white rounded-2xl border border-gray-200/80 shadow-sm space-y-3">
+              <div className="p-6 bg-white rounded-2xl border border-gray-200/80 shadow-sm space-y-3 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl cursor-pointer">
                 <div className="w-9 h-9 rounded-xl bg-emerald-100/80 text-[#0d472a] flex items-center justify-center font-bold text-base">
                   📊
                 </div>
@@ -251,7 +294,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
           </div>
         </section>
 
-        {/* Professional Testimonials Section */}
+        {/* Professional Testimonials Section with Hover Lift Effect */}
         <section id="testimonials" className="py-16 bg-white border-t border-gray-100">
           <div className="max-w-6xl mx-auto px-6 space-y-10">
             <div className="text-center space-y-2">
@@ -261,7 +304,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
 
             <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
               {testimonials.map((t, idx) => (
-                <div key={idx} className="p-6 bg-slate-50 rounded-2xl border border-gray-200/60 space-y-4 shadow-sm">
+                <div key={idx} className="p-6 bg-slate-50 rounded-2xl border border-gray-200/60 space-y-4 shadow-sm transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
                   <p className="text-xs text-gray-600 leading-relaxed italic">
                     "{t.text}"
                   </p>
@@ -278,7 +321,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
               ))}
             </div>
 
-            {/* Add New Feedback Form for Users / Presentation Demo */}
+            {/* Add New Feedback Form connected to Supabase */}
             <div className="max-w-xl mx-auto bg-slate-50 border border-gray-200 rounded-2xl p-6 space-y-4 shadow-sm mt-8">
               <h3 className="font-bold text-sm text-gray-900 text-center">Share Your Feedback</h3>
               <form onSubmit={handleFeedbackSubmit} className="space-y-3">
@@ -309,16 +352,17 @@ export default function LandingPage({ onNavigateToDashboard }) {
                 ></textarea>
                 <button
                   type="submit"
-                  className="w-full py-2 bg-[#0d472a] hover:bg-emerald-900 text-white font-semibold text-xs rounded-xl transition shadow"
+                  disabled={isLoading}
+                  className="w-full py-2 bg-[#0d472a] hover:bg-emerald-900 text-white font-semibold text-xs rounded-xl transition shadow disabled:opacity-75 flex justify-center items-center gap-2"
                 >
-                  Submit Feedback
+                  {isLoading ? 'Saving to Database...' : 'Submit Feedback'}
                 </button>
               </form>
             </div>
           </div>
         </section>
 
-        {/* Pricing Section - Converted to PKR */}
+        {/* Pricing Section */}
         <section id="pricing" className="py-16 bg-slate-50 border-t border-gray-200/60">
           <div className="max-w-4xl mx-auto px-6 space-y-10">
             <div className="text-center space-y-2">
@@ -327,8 +371,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
             </div>
 
             <div className="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-              {/* Student Basic */}
-              <div className="p-6 bg-white rounded-2xl border border-gray-200/80 shadow-sm space-y-5 flex flex-col justify-between">
+              <div className="p-6 bg-white rounded-2xl border border-gray-200/80 shadow-sm space-y-5 flex flex-col justify-between transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
                 <div>
                   <h3 className="font-bold text-gray-900 text-sm">Student Basic</h3>
                   <div className="mt-3 text-3xl font-extrabold text-gray-900">Free</div>
@@ -346,8 +389,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
                 </button>
               </div>
 
-              {/* HifzMate Pro */}
-              <div className="p-6 bg-[#0d472a] text-white rounded-2xl shadow-xl space-y-5 flex flex-col justify-between">
+              <div className="p-6 bg-[#0d472a] text-white rounded-2xl shadow-xl space-y-5 flex flex-col justify-between transition-all duration-300 hover:-translate-y-2 hover:shadow-xl">
                 <div>
                   <h3 className="font-bold text-sm text-emerald-100">HifzMate Pro</h3>
                   <div className="mt-3 text-3xl font-extrabold">Rs. 1,400 <span className="text-xs font-normal text-emerald-200">/ month</span></div>
@@ -368,11 +410,11 @@ export default function LandingPage({ onNavigateToDashboard }) {
           </div>
         </section>
 
-        {/* Interactive FAQ Section */}
+        {/* FAQ Section */}
         <section id="faq" className="py-16 bg-white border-t border-gray-100">
           <div className="max-w-3xl mx-auto px-6 space-y-8">
             <div className="text-center space-y-2">
-              <h2 className="text-2xl font-bold text-gray-900">Frequently Asked Questions</h2>
+             <h2 className="text-2xl font-bold text-gray-900">Frequently Asked Questions</h2>
               <p className="text-gray-500 text-xs">Got questions about HifzMate Pro? Find answers below.</p>
             </div>
 
@@ -411,7 +453,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
         </section>
       </div>
 
-      {/* Solid Dark Green Footer */}
+      {/* Footer */}
       <footer className="bg-[#0d472a] text-emerald-100 border-t border-emerald-900/40 py-8">
         <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2">
@@ -435,7 +477,7 @@ export default function LandingPage({ onNavigateToDashboard }) {
         </div>
       </footer>
 
-      {/* Login / Sign Up Modal */}
+      {/* Modals */}
       {showAuthModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl relative">
@@ -475,7 +517,6 @@ export default function LandingPage({ onNavigateToDashboard }) {
                 </div>
               )}
 
-              {/* Email Input */}
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">Email Address</label>
                 <input
@@ -490,7 +531,6 @@ export default function LandingPage({ onNavigateToDashboard }) {
                 />
               </div>
 
-              {/* Password Input */}
               <div>
                 <label className="block text-xs font-semibold text-gray-700 mb-1">Password</label>
                 <input
@@ -552,7 +592,6 @@ export default function LandingPage({ onNavigateToDashboard }) {
         </div>
       )}
 
-      {/* Demo Video Modal */}
       {showDemoModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl relative">
@@ -588,7 +627,6 @@ export default function LandingPage({ onNavigateToDashboard }) {
         </div>
       )}
 
-      {/* Payment Gateway Modal */}
       {showPaymentModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl relative">
